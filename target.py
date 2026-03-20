@@ -5,7 +5,20 @@ DB_FILE = 'warhammer.db'
 FIELDS = ['name', 'T', 'Sv', 'ISv', 'W', 'points', 'keywords']
 
 def get_db():
-    return sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Needs to return the row for a unit
+def get_unit(unit_name):
+    with get_db() as conn:
+        row = conn.execute('SELECT * FROM units WHERE name = ?',
+                                   (unit_name,
+                                    )).fetchone()
+        if not row:
+            raise ValueError("Unit does not exist")
+        unit = row
+        return unit
 
 def add_unit():
     name = input('Name?\n> ')
@@ -14,9 +27,9 @@ def add_unit():
     invul_save = input('ISv?\n> ')
     wounds = input('W?\n> ')
     points = input('Point cost?\n> ')
-    keys = input('Keywords separated with a space\n> ')
+    keys = input('Keywords separated with a comma\n> ')
 
-    keywords = keys.split()
+    keywords = [k.strip() for k in keys.split(',')]
 
     print('Is this correct?')
     print(f'Name: {name}, T: {toughness}, S: {save}, ISv: {invul_save}, W: {wounds}, Points: {points}, Keywords: {keywords}')
@@ -27,9 +40,9 @@ def add_unit():
     else:
         with get_db() as conn:
             cur = conn.execute("""
-                INSERT INTO units (name, T, Sv, ISv, W, points)
+                INSERT INTO units (name, toughness, wounds, save, invuln, points)
                 VALUES (?, ?, ?, ?, ?, ?)
-                """, (name, toughness, save, invul_save, wounds, points))
+                """, (name, toughness, wounds, save, invul_save, points))
             unit_id = cur.lastrowid
             for word in keywords:
                 conn.execute("""

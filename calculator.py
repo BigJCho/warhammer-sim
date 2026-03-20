@@ -10,7 +10,6 @@ import target
 
 ### Need to add modifiers for +/- hit, rapid fire, rerolls, lethals, sustained, feel no pain
 
-
 # Regex for expressions like 2d6 or d6+1
 DICE_RE = re.compile(
     r"^\s*(\d*)\s*[dD]\s*(\d+)\s*([+-]\s*\d+)?\s*$"
@@ -46,23 +45,23 @@ def roll_dice(expr):
 # modifiers[0] is skill (- is good here), [1] is hit, [2] is damage, [3] is feel no pain
 def calculate(weapon, target, modifiers):
     # Comparing weapon strength to target toughness for later roll
-    if int(weapon['S']) <= (int(target['T'])/2):
+    if int(weapon['strength']) <= (int(target['toughness'])/2):
         wound_thresh = 6
-    elif int(weapon['S']) >= (int(target['T'])*2):
+    elif int(weapon['strength']) >= (int(target['toughness'])*2):
         wound_thresh = 2
-    elif int(weapon['S']) < (int(target['T'])/2):
+    elif int(weapon['strength']) < (int(target['toughness'])/2):
         wound_thresh = 5
-    elif int(weapon['S']) > (int(target['T'])/2):
+    elif int(weapon['strength']) > (int(target['toughness'])/2):
         wound_thresh = 3
     else:
         wound_thresh = 4
 
     # Calculate save
     # AP + Sv compare to Invuln Save, keeping the lower of the two
-    if int(weapon['AP']) + int(target['Sv']) >= int(target['ISv']):
-        save = int(target['ISv'])
+    if int(weapon['AP']) + int(target['save']) >= int(target['invuln']):
+        save = int(target['invuln'])
     else:
-        save = int(weapon['AP']) + int(target['Sv'])
+        save = int(weapon['AP']) + int(target['save'])
 
     x = 1
 
@@ -78,7 +77,7 @@ def calculate(weapon, target, modifiers):
         succ_wounds = 0
         dam = 0
         
-        attacks, _, _ = roll_dice(weapon['A'])
+        attacks, _, _ = roll_dice(weapon['attacks'])
 
         # Roll to hit
         for a in range(attacks):
@@ -100,7 +99,7 @@ def calculate(weapon, target, modifiers):
 
         # Calculate damage
         for sw in range(succ_wounds):
-            damage, _, _ = roll_dice(weapon['D'])
+            damage, _, _ = roll_dice(weapon['damage'])
             damage = damage + modifiers[2] if damage > 1 else 1
             dam += damage
         
@@ -142,7 +141,7 @@ def main():
     args = parser.parse_args()
 
     weapons = attack.get_weapons_for_unit(args.attacker)
-    unit = target.get_unit(args.target)[0]
+    unit = target.get_unit(args.target)
 
     modifiers = []
     if args.skill:
@@ -165,7 +164,7 @@ def main():
 
     for w in weapons:
         results = monte_carlo(100000 ,w, unit, modifiers)
-        print(w['weapon_name'])
+        print(w['name'])
         print("Mean:", statistics.mean(results))
         print("Median:", statistics.median(results))
         print("Std Dev:", statistics.stdev(results))

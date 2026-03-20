@@ -1,20 +1,20 @@
 import argparse
-import csv
-import os
 import sqlite3
 
 DB_FILE = 'warhammer.db'
 FIELDS = ['parent_name', 'weapon_name', 'A', 'skill', 'S', 'AP', 'D', 'keywords']
 
 def get_db():
-    return sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def get_weapons_for_unit(parent_name):
     with get_db() as conn:
         return conn.execute("""
             SELECT w.*
             FROM weapons w
-            JOIN units ON w.unit_id = u.id
+            JOIN units u ON w.unit_id = u.id
             WHERE u.name = ?
         """, (parent_name,)).fetchall()
 
@@ -25,20 +25,21 @@ def add_weapon(parent_name):
     strength = input('S?:\n> ')
     ap = input('AP?:\n> ')
     damage = input('D?:\n> ')
-    keys = input('Keywords separated by space:\n> ')
+    keys = input('Keywords separated by comma:\n> ')
 
-    keywords = keys.split()
+    keywords = [k.strip() for k in keys.split(',')]
 
     with get_db() as conn:
-        unit_id = conn.execute('SELECT id FROM units WHERE name = ?',
+        row = conn.execute('SELECT id FROM units WHERE name = ?',
                                (parent_name,
                                 )).fetchone()
-        if not unit_id:
+        if not row:
             raise ValueError("Unit does not exist")
+        unit_id = row[0]
         cur = conn.execute(
             """
             INSERT INTO weapons
-            (unit_id, weapon_name, A, skill, S, AP, D)
+            (unit_id, name, attacks, skill, strength, ap, damage)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             unit_id,
