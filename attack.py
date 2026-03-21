@@ -25,9 +25,10 @@ def add_weapon(parent_name):
     strength = input('S?:\n> ')
     ap = input('AP?:\n> ')
     damage = input('D?:\n> ')
+    type = input('Melee or Ranged?\n')
     keys = input('Keywords separated by comma:\n> ')
-
-    keywords = [k.strip() for k in keys.split(',')]
+    
+    keywords = [k.strip().lower() for k in keys.split(',')]
 
     with get_db() as conn:
         row = conn.execute('SELECT id FROM units WHERE name = ?',
@@ -39,8 +40,8 @@ def add_weapon(parent_name):
         cur = conn.execute(
             """
             INSERT INTO weapons
-            (unit_id, name, attacks, skill, strength, ap, damage)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (unit_id, name, attacks, skill, strength, ap, damage, type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             unit_id,
             weapon_name,
@@ -48,17 +49,19 @@ def add_weapon(parent_name):
             skill,
             strength,
             ap,
-            damage
+            damage,
+            type
         ))
         weapon_id = cur.lastrowid
-        for word in keywords:
-            conn.execute("""
-                INSERT INTO weapon_keywords (weapon_id, keyword_id)
-                VALUES (
-                    ?,
-                    (SELECT id FROM keywords WHERE name = ?)
-                )
-            """, (weapon_id, word))
+        if keys:
+            for word in keywords:
+                conn.execute("""
+                    INSERT INTO weapon_keywords (weapon_id, keyword_id)
+                    VALUES (
+                        ?,
+                        (SELECT id FROM keywords WHERE name = ?)
+                    )
+                """, (weapon_id, word))
 
 def main():
     parser = argparse.ArgumentParser(description='Unit weapon manager')

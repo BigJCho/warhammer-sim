@@ -10,6 +10,12 @@ import target
 
 ### Need to add modifiers for +/- hit, rapid fire, rerolls, lethals, sustained, feel no pain
 
+### I think we just need to start adding in units and iterating upon them
+### in the sense that when we reach a rule we just need to write a conditional for it within the calculator
+
+
+### Perhaps start with model count per unit
+
 # Regex for expressions like 2d6 or d6+1
 DICE_RE = re.compile(
     r"^\s*(\d*)\s*[dD]\s*(\d+)\s*([+-]\s*\d+)?\s*$"
@@ -173,4 +179,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    print('Fucking kill yourself\n')

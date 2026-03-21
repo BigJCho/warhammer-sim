@@ -2,7 +2,6 @@ import argparse
 import sqlite3
 
 DB_FILE = 'warhammer.db'
-FIELDS = ['name', 'T', 'Sv', 'ISv', 'W', 'points', 'keywords']
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -26,13 +25,14 @@ def add_unit():
     save = input('Sv?\n> ')
     invul_save = input('ISv?\n> ')
     wounds = input('W?\n> ')
-    points = input('Point cost?\n> ')
+    points = input('Point cost? Please use max unit size\n> ')
+    models = input('Model count? Please use max unit size\n')
     keys = input('Keywords separated with a comma\n> ')
 
-    keywords = [k.strip() for k in keys.split(',')]
+    keywords = [k.strip().lower() for k in keys.split(',')]
 
     print('Is this correct?')
-    print(f'Name: {name}, T: {toughness}, S: {save}, ISv: {invul_save}, W: {wounds}, Points: {points}, Keywords: {keywords}')
+    print(f'Name: {name}, T: {toughness}, S: {save}, ISv: {invul_save}, W: {wounds}, Points: {points}, Models: {models}, Keywords: {keywords}')
     confirmation = input('Y or N:\n >')
     if confirmation.lower() != 'y':
         print('Please re-run and enter again.')
@@ -40,18 +40,19 @@ def add_unit():
     else:
         with get_db() as conn:
             cur = conn.execute("""
-                INSERT INTO units (name, toughness, wounds, save, invuln, points)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """, (name, toughness, wounds, save, invul_save, points))
+                INSERT INTO units (name, toughness, wounds, save, invuln, points, models)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (name, toughness, wounds, save, invul_save, points, models))
             unit_id = cur.lastrowid
-            for word in keywords:
-                conn.execute("""
-                    INSERT INTO unit_keywords (unit_id, keyword_id)
-                    VALUES (
-                        ?,
-                        (SELECT id FROM keywords WHERE name = ?)
-                    )
-                """, (unit_id, word))
+            if keys:
+                for word in keywords:
+                    conn.execute("""
+                        INSERT INTO unit_keywords (unit_id, keyword_id)
+                        VALUES (
+                            ?,
+                            (SELECT id FROM keywords WHERE name = ?)
+                        )
+                    """, (unit_id, word))
 
 def delete_unit(name):
     with get_db() as conn:
