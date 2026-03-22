@@ -46,6 +46,14 @@ def add_unit():
             unit_id = cur.lastrowid
             if keys:
                 for word in keywords:
+                    conn.execute(
+                        """
+                        INSERT OR IGNORE INTO keywords
+                        (name)
+                        VALUES (?)
+                    """, (
+                        word,
+                    ))
                     conn.execute("""
                         INSERT INTO unit_keywords (unit_id, keyword_id)
                         VALUES (
