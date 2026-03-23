@@ -9,17 +9,17 @@ import target
 
 DB_FILE = 'warhammer.db'
 
-### Beyond just raw rules, need to simulate actual weapon choies per unit and composition (ie 3 cognis heavy)
 ### Maybe we consider this evolving into a dynamic list builder
 ### Need to add modifiers for +/- hit, rapid fire, rerolls, lethals, sustained, feel no pain
 
-### I think we just need to start adding in units and iterating upon them
-### in the sense that when we reach a rule we just need to write a conditional for it within the calculator
-
-### Going to have to add preprocessing in the loop for melee weapon selection?
-### Perhaps start with model count per unit
-
-### I think modifiers should be a list of keywords
+### Need faction column in units table
+### Need enumerate mode for simulating all from faction onto faction
+### Need to group sims into appropriate weapon profiles
+### Need weapon profiles table (Unit_id, profile_id, weapon_id, weapon_qty) and then we sim on profile_id for a given unit
+### Need to have the output readable if I enumerate
+### Need to be able to handle multiple-model units, both kill (damage doesn't splash) and deal
+### Need to handle plain text rules and leadership rules
+### Going to finish adding in rest of Admech faction and stop there, will have to go over again for profiles
 
 # Regex for expressions like 2d6 or d6+1
 DICE_RE = re.compile(
